@@ -31,6 +31,7 @@ TokenPulse leverages multiple data sources and cutting-edge AI technologies to h
 ### API Setup Instructions
 
 #### Twitter Application Setup
+
 1. Visit the Twitter (X) [Developer Portal](https://developer.x.com/en/portal/dashboard)
 2. Navigate to your project and application
 3. Edit "User authentication settings"
@@ -66,6 +67,12 @@ TWITTER_API_KEY=your_twitter_api_key
 TWITTER_API_SECRET=your_twitter_api_secret
 CDP_API_KEY_NAME=your_cdp_key_name
 CDP_API_KEY_PRIVATE_KEY=your_cdp_private_key
+SCHEDULE_ENABLED=true or false
+SCHEDULE_INTERVAL_MINUTES=optional
+SCHEDULE_TIMEZONE=optional
+MAX_DAILY_RUNS=optional
+START_HOUR=optional
+END_HOUR=optional
 ```
 
 ## Usage
