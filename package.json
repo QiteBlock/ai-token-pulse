@@ -1,16 +1,13 @@
 {
-  "name": "Token Pulse",
-  "description": "AI Sentiment Analyzer for Tokens",
+  "name": "tokenpulse",
   "version": "1.0.0",
-  "author": "QiteBlock",
-  "license": "GNU General Public License v3.0",
+  "description": "AI-driven crypto token sentiment analysis tool",
+  "main": "dist/index.js",
   "scripts": {
-    "start": "NODE_OPTIONS='--no-warnings' ts-node ./chatbot.ts",
-    "dev": "nodemon ./chatbot.ts",
-    "lint": "eslint -c .eslintrc.json *.ts",
-    "lint-fix": "eslint -c .eslintrc.json *.ts --fix",
-    "format": "prettier -c .prettierrc --write \"**/*.{ts,js,cjs,json,md}\"",
-    "format-check": "prettier -c .prettierrc --check \"**/*.{ts,js,cjs,json,md}\""
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node src/index.ts",
+    "start-co": "NODE_OPTIONS='--no-warnings' ts-node ./chatbot.ts"
   },
   "dependencies": {
     "@coinbase/agentkit": "^0.1.0",
@@ -18,11 +15,14 @@
     "@langchain/langgraph": "^0.2.21",
     "@langchain/openai": "^0.3.14",
     "@langchain/core": "^0.3.19",
-    "dotenv": "^16.4.5",
-    "zod": "^3.22.4"
+    "zod": "^3.22.4",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "twitter-api-v2": "^1.15.2"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "ts-node": "^10.9.2"
+    "@types/node": "^20.10.0",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.3.2"
   }
 }
