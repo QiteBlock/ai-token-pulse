@@ -1,3 +1,4 @@
+import { DexscreenerService } from "./services/dexscreener";
 import {
   Token,
   TokenReport,
@@ -11,7 +12,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 class TokenPulse {
+  private dexscreener: DexscreenerService;
   private isProcessing: boolean = false;
+
+  constructor() {
+    this.dexscreener = new DexscreenerService();
+  }
 
   async run() {
     if (this.isProcessing) {
@@ -20,6 +26,22 @@ class TokenPulse {
     }
 
     this.isProcessing = true;
+
+    try {
+      const token = await this.dexscreener.getTopBoostToken();
+
+      try {
+        console.log(
+          `Processing token on ${token.chainId}: ${token.tokenAddress}`
+        );
+      } catch (error) {
+        console.error(`Error processing token ${token.tokenAddress}:`, error);
+      }
+    } catch (error) {
+      console.error("Error in TokenPulse:", error);
+    } finally {
+      this.isProcessing = false;
+    }
   }
 }
 
