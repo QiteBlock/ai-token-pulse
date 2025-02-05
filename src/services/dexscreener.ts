@@ -2,25 +2,61 @@ import axios from "axios";
 import { Token, DexscreenerToken, TokenPairData } from "../types/interfaces";
 
 export class DexscreenerService {
+  private readonly baseUrl = "https://api.dexscreener.com/token-pairs/v1";
   private lastRequestTime: number = 0;
-  private readonly minRequestInterval = 1000;
-  private readonly maxRetries = 3;
-  private readonly timeout = 5000;
+  private readonly minRequestInterval: number;
+  private readonly maxRetries: number;
+  private readonly timeout: number;
 
-  // Filtering thresholds
-  private readonly MIN_LIQUIDITY_USD = 50000; // $50k minimum liquidity
-  private readonly MIN_VOLUME_24H = 10000; // $10k minimum 24h volume
-  private readonly MIN_TXNS_24H = 50; // Minimum 50 transactions in 24h
-  private readonly MIN_MARKET_CAP = 1000000; // $1M minimum market cap
-  private readonly MAX_MARKET_CAP = 100000000; // $100M maximum market cap
+  // Filtering thresholds from env
+  private readonly MIN_LIQUIDITY_USD: number;
+  private readonly MIN_VOLUME_24H: number;
+  private readonly MIN_TXNS_24H: number;
+  private readonly MIN_MARKET_CAP: number;
+  private readonly MAX_MARKET_CAP: number;
 
-  private readonly SCORE_WEIGHTS = {
-    liquidity: 0.25, // 25% weight for liquidity
-    volume: 0.25, // 25% weight for 24h volume
-    transactions: 0.2, // 20% weight for transaction count
-    priceChange: 0.15, // 15% weight for price change
-    marketCap: 0.15, // 15% weight for market cap
+  // Scoring weights from env
+  private readonly SCORE_WEIGHTS: {
+    liquidity: number;
+    volume: number;
+    transactions: number;
+    priceChange: number;
+    marketCap: number;
   };
+
+  constructor() {
+    // API configuration
+    this.minRequestInterval = parseInt(
+      process.env.DEXSCREENER_REQUEST_INTERVAL || "1000"
+    );
+    this.maxRetries = parseInt(process.env.DEXSCREENER_MAX_RETRIES || "3");
+    this.timeout = parseInt(process.env.DEXSCREENER_TIMEOUT || "5000");
+
+    // Filtering thresholds
+    this.MIN_LIQUIDITY_USD = parseInt(process.env.MIN_LIQUIDITY_USD || "50000");
+    this.MIN_VOLUME_24H = parseInt(process.env.MIN_VOLUME_24H || "10000");
+    this.MIN_TXNS_24H = parseInt(process.env.MIN_TXNS_24H || "50");
+    this.MIN_MARKET_CAP = parseInt(process.env.MIN_MARKET_CAP || "1000000");
+    this.MAX_MARKET_CAP = parseInt(process.env.MAX_MARKET_CAP || "100000000");
+
+    // Scoring weights
+    this.SCORE_WEIGHTS = {
+      liquidity: parseFloat(process.env.WEIGHT_LIQUIDITY || "0.25"),
+      volume: parseFloat(process.env.WEIGHT_VOLUME || "0.25"),
+      transactions: parseFloat(process.env.WEIGHT_TRANSACTIONS || "0.20"),
+      priceChange: parseFloat(process.env.WEIGHT_PRICE_CHANGE || "0.15"),
+      marketCap: parseFloat(process.env.WEIGHT_MARKET_CAP || "0.15"),
+    };
+
+    // Validate weights sum to 1
+    const weightSum = Object.values(this.SCORE_WEIGHTS).reduce(
+      (a, b) => a + b,
+      0
+    );
+    if (Math.abs(weightSum - 1) > 0.001) {
+      throw new Error(`Score weights must sum to 1. Current sum: ${weightSum}`);
+    }
+  }
 
   private async rateLimit() {
     const now = Date.now();
