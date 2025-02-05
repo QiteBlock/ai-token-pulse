@@ -106,36 +106,3 @@ export interface Tweet {
     replies: number;
   };
 }
-
-export interface SentimentAnalysis {
-  sentiment: string;
-  confidence: number;
-  arguments: string[];
-}
-
-export interface TokenReport {
-  token: Token;
-  timestamp: Date;
-  overallSentiment: string;
-  confidenceScore: number;
-  supportingArguments: string[];
-  analyzedTweets: number;
-}
-
-export interface AnalyzerConfig {
-  apiKey: string;
-  threshold?: number;
-  maxTweets?: number;
-}
-
-export interface TweetData {
-  text: string;
-  id: string;
-  createdAt: Date;
-}
-
-export interface AnalysisResult {
-  sentiment: SentimentAnalysis;
-  token: Token;
-  timestamp: Date;
-}
