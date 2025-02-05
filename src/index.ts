@@ -1,4 +1,5 @@
 import { DexscreenerService } from "./services/dexscreener";
+import { TwitterService } from "./services/twitter";
 import {
   Token,
   TokenReport,
@@ -13,10 +14,12 @@ dotenv.config();
 
 class TokenPulse {
   private dexscreener: DexscreenerService;
+  private twitter: TwitterService;
   private isProcessing: boolean = false;
 
   constructor() {
     this.dexscreener = new DexscreenerService();
+    this.twitter = new TwitterService();
   }
 
   async run() {
@@ -34,6 +37,8 @@ class TokenPulse {
         console.log(
           `Processing token on ${token.chainId}: ${token.tokenAddress}`
         );
+        const limit = 10;
+        const tweets = await this.twitter.getTweetsByToken(token, limit);
       } catch (error) {
         console.error(`Error processing token ${token.tokenAddress}:`, error);
       }
