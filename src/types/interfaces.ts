@@ -34,16 +34,6 @@ export interface DexscreenerToken {
   links: DexscreenerLink[];
 }
 
-export interface TokenLink {
-  type: string;
-  url: Url;
-}
-
-export interface Url {
-  label: string;
-  url: string;
-}
-
 export interface TokenPairData {
   chainId: string;
   dexId: string;
@@ -96,7 +86,7 @@ export interface Token {
   header?: string;
   openGraph?: string;
   description: string;
-  links?: Array<TokenLink>;
+  links?: DexscreenerLink[];
   totalAmount?: number;
   // Added liquidity pool data
   price: number;

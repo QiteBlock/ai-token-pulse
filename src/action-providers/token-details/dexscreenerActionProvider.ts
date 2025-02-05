@@ -4,36 +4,18 @@ import { CreateAction } from "@coinbase/agentkit";
 import { Network } from "@coinbase/agentkit";
 import axios from "axios";
 import {
-  GetTokenPairDataSchema,
   GetLatestTokensSchema,
   GetBestTokenSchema,
+  GetTokenPairDataSchema,
 } from "./schemas";
-import { Token } from "../../types/interfaces";
+import { DexscreenerToken } from "../../types/interfaces";
+import { DexscreenerService } from "../../services/dexscreener";
 
 export class DexscreenerActionProvider extends ActionProvider {
-  private lastRequestTime: number = 0;
-  private readonly baseUrl: string = "https://api.dexscreener.com/latest/dex";
-  private readonly minRequestInterval: number;
-  private readonly timeout: number;
-
+  private readonly dexscreenerService: DexscreenerService;
   constructor() {
     super("dexscreener", []);
-
-    this.minRequestInterval = parseInt(
-      process.env.DEXSCREENER_REQUEST_INTERVAL || "1000"
-    );
-    this.timeout = parseInt(process.env.DEXSCREENER_TIMEOUT || "5000");
-  }
-
-  private async rateLimit() {
-    const now = Date.now();
-    const timeSinceLastRequest = now - this.lastRequestTime;
-    if (timeSinceLastRequest < this.minRequestInterval) {
-      await new Promise((resolve) =>
-        setTimeout(resolve, this.minRequestInterval - timeSinceLastRequest)
-      );
-    }
-    this.lastRequestTime = Date.now();
+    this.dexscreenerService = new DexscreenerService();
   }
 
   @CreateAction({
@@ -47,18 +29,13 @@ Returns: Formatted list of tokens with their details and social links.`,
     args: z.infer<typeof GetLatestTokensSchema>
   ): Promise<string> {
     try {
-      await this.rateLimit();
-
-      const response = await axios.get(
-        `https://api.dexscreener.com/token-profiles/latest/v1`,
-        {
-          timeout: this.timeout,
-          validateStatus: (status) => status === 200,
-        }
-      );
-
-      const tokens: Token[] = response.data.slice(0, args.limit);
+      const response = await this.dexscreenerService.getLatestTokens();
+      let tokens: DexscreenerToken[] = response.slice(0, args.limit);
       let formattedOutput = "";
+
+      if (tokens.length > args.limit) {
+        tokens = tokens.slice(0, args.limit);
+      }
 
       tokens.forEach((token: any, index: number) => {
         formattedOutput += `Token ${index + 1}:\n`;
@@ -91,68 +68,51 @@ Returns: Formatted list of tokens with their details and social links.`,
 
   @CreateAction({
     name: "get_best_token",
-    description: `Analyzes and finds the best token based on metrics. Parameters:
-- minLiquidityUsd: Min liquidity (default: 50k)
-- minVolume24h: Min volume (default: 10k)
-- minTxns24h: Min transactions (default: 50)
-Returns: Best token with analysis and scoring.`,
+    description: `Analyzes and finds the best token from latest tokens based on metrics. 
+Returns: Best token with its details.`,
     schema: GetBestTokenSchema,
   })
   async getBestToken(
     args: z.infer<typeof GetBestTokenSchema>
   ): Promise<string> {
     try {
-      await this.rateLimit();
+      const bestToken = await this.dexscreenerService.getBestToken();
 
-      const response = await axios.get(
-        `https://api.dexscreener.com/token-profiles/latest/v1`,
-        {
-          timeout: this.timeout,
-        }
-      );
-
-      const analyzedTokens = response.data.pairs
-        .filter((pair: any) => {
-          return (
-            pair &&
-            pair.liquidity?.usd >= args.minLiquidityUsd &&
-            pair.volume?.h24 >= args.minVolume24h &&
-            (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0) >=
-              args.minTxns24h &&
-            pair.marketCap >= args.minMarketCap &&
-            pair.marketCap <= args.maxMarketCap
-          );
-        })
-        .map((pair: any) => {
-          const metrics = this.calculateMetrics(pair);
-          const score = this.calculateScore(metrics, args.scoreWeights);
-          const analysis = this.analyzeToken(metrics, score);
-
-          return {
-            chainId: pair.chainId,
-            address: pair.tokenAddress,
-            price: parseFloat(pair.priceUsd || "0"),
-            volume24h: pair.volume?.h24 || 0,
-            priceChange24h: pair.priceChange?.h24 || 0,
-            liquidity: pair.liquidity?.usd || 0,
-            marketCap: pair.marketCap || 0,
-            txCount24h:
-              (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0),
-            score,
-            analysis,
-          };
-        })
-        .sort((a: any, b: any) => b.score - a.score);
-
-      if (analyzedTokens.length === 0) {
+      if (!bestToken) {
         return JSON.stringify({
           message: "No tokens found matching the criteria",
         });
       }
 
-      return JSON.stringify({
-        bestToken: analyzedTokens[0],
-      });
+      // Format token details
+      let formattedOutput = `Best Token Analysis:\n\n`;
+      formattedOutput += `Token Address: ${bestToken.tokenAddress}\n`;
+      formattedOutput += `Chain: ${bestToken.chainId}\n`;
+      formattedOutput += `URL: ${bestToken.url}\n\n`;
+
+      // Add metrics
+      formattedOutput += `Key Metrics:\n`;
+      formattedOutput += `Price: $${bestToken.price.toFixed(6)}\n`;
+      formattedOutput += `24h Volume: $${bestToken.volume24h.toLocaleString()}\n`;
+      formattedOutput += `Liquidity: $${bestToken.liquidity.toLocaleString()}\n`;
+      formattedOutput += `24h Price Change: ${bestToken.priceChange24h.toFixed(
+        2
+      )}%\n`;
+      formattedOutput += `24h Transactions: ${bestToken.txCount24h}\n`;
+      formattedOutput += `Market Cap: $${bestToken.marketCap.toLocaleString()}\n\n`;
+
+      if (bestToken.description) {
+        formattedOutput += `Description: ${bestToken.description}\n\n`;
+      }
+
+      if (bestToken.links && bestToken.links.length > 0) {
+        formattedOutput += `Social Media Links:\n`;
+        bestToken.links.forEach((link) => {
+          formattedOutput += `- ${link.label}: ${link.url}\n`;
+        });
+      }
+
+      return formattedOutput;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 429) {
         return "Error analyzing tokens: Rate limit exceeded";
@@ -161,95 +121,74 @@ Returns: Best token with analysis and scoring.`,
     }
   }
 
-  private calculateMetrics(pair: any) {
-    return {
-      liquidity: pair.liquidity?.usd || 0,
-      volume: pair.volume?.h24 || 0,
-      transactions: (pair.txns?.h24?.buys || 0) + (pair.txns?.h24?.sells || 0),
-      priceChange: pair.priceChange?.h24 || 0,
-      marketCap: pair.marketCap || 0,
-    };
-  }
+  @CreateAction({
+    name: "get_token_pair_data",
+    description: `Gets detailed data for a specific token pair. Parameters:
+- chainId: Blockchain network ID (e.g., "ethereum", "bsc")
+- tokenAddress: Token contract address
+Returns: Price, volume, liquidity metrics for the token.`,
+    schema: GetTokenPairDataSchema,
+  })
+  async getTokenPairData(
+    args: z.infer<typeof GetTokenPairDataSchema>
+  ): Promise<string> {
+    try {
+      const response = await this.dexscreenerService.getTokenPairData(
+        args.chainId,
+        args.tokenAddress
+      );
 
-  private calculateScore(metrics: any, weights: any = {}) {
-    const defaultWeights = {
-      liquidity: 0.25,
-      volume: 0.25,
-      transactions: 0.2,
-      priceChange: 0.15,
-      marketCap: 0.15,
-      ...weights,
-    };
+      // Find the most relevant pair (highest liquidity)
+      const mostRelevantPair = response
+        .filter((pair: any) => pair.chainId === args.chainId)
+        .sort(
+          (a: any, b: any) => (b.liquidity?.usd || 0) - (a.liquidity?.usd || 0)
+        )[0];
 
-    return (
-      this.normalizeMetric(metrics.liquidity) * defaultWeights.liquidity +
-      this.normalizeMetric(metrics.volume) * defaultWeights.volume +
-      this.normalizeMetric(metrics.transactions) * defaultWeights.transactions +
-      this.calculatePriceChangeScore(metrics.priceChange) *
-        defaultWeights.priceChange +
-      this.normalizeMetric(metrics.marketCap) * defaultWeights.marketCap
-    );
-  }
+      if (!mostRelevantPair) {
+        return `No pair found for chain ${args.chainId}`;
+      }
 
-  private normalizeMetric(value: number): number {
-    return Math.min(Math.max(value / 1000000, 0), 1);
-  }
+      let formattedOutput = "Token Pair Data:\n";
+      formattedOutput += `Chain: ${mostRelevantPair.chainId}\n`;
+      formattedOutput += `DEX: ${mostRelevantPair.dexId}\n`;
+      formattedOutput += `Token Address: ${mostRelevantPair.baseToken.address}\n`;
+      formattedOutput += `Pair Address: ${mostRelevantPair.pairAddress}\n`;
+      formattedOutput += `Token Name: ${mostRelevantPair.baseToken.name}\n`;
+      formattedOutput += `Symbol: ${mostRelevantPair.baseToken.symbol}\n\n`;
 
-  private calculatePriceChangeScore(priceChange: number): number {
-    if (priceChange > 0 && priceChange <= 30) {
-      return priceChange / 30;
-    } else if (priceChange > 30) {
-      return 1 - (priceChange - 30) / 70;
+      formattedOutput += "Price Metrics:\n";
+      formattedOutput += `Price USD: $${parseFloat(
+        mostRelevantPair.priceUsd || "0"
+      ).toFixed(8)}\n`;
+      formattedOutput += `Price Native: ${parseFloat(
+        mostRelevantPair.priceNative || "0"
+      ).toFixed(8)}\n`;
+      formattedOutput += `24h Change: ${
+        mostRelevantPair.priceChange?.h24 || 0
+      }%\n\n`;
+
+      formattedOutput += "Volume & Liquidity:\n";
+      formattedOutput += `24h Volume: $${(
+        mostRelevantPair.volume?.h24 || 0
+      ).toLocaleString()}\n`;
+      formattedOutput += `Liquidity USD: $${(
+        mostRelevantPair.liquidity?.usd || 0
+      ).toLocaleString()}\n`;
+
+      if (mostRelevantPair.txns?.h24) {
+        formattedOutput += "\nTransactions (24h):\n";
+        formattedOutput += `Buys: ${mostRelevantPair.txns.h24.buys || 0}\n`;
+        formattedOutput += `Sells: ${mostRelevantPair.txns.h24.sells || 0}\n`;
+      }
+
+      return formattedOutput;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 429) {
+        return "Error: Rate limit exceeded. Please try again later.";
+      }
+      return `Error fetching pair data: ${error}`;
     }
-    return Math.max(0, (priceChange + 20) / 20);
-  }
-
-  private calculateAverageAge(tokens: any[]): string {
-    if (tokens.length === 0) return "0 hours";
-    const totalMinutes = tokens.reduce((sum, token) => {
-      const [hours, minutes] = token.age
-        .split(" hours")
-        .join("")
-        .split(" minutes")
-        .filter(Boolean)
-        .map(Number);
-      return sum + (hours || 0) * 60 + (minutes || 0);
-    }, 0);
-    const avgMinutes = Math.round(totalMinutes / tokens.length);
-    const hours = Math.floor(avgMinutes / 60);
-    const minutes = avgMinutes % 60;
-    return hours > 0
-      ? `${hours} hours${minutes > 0 ? ` ${minutes} minutes` : ""}`
-      : `${minutes} minutes`;
-  }
-
-  private calculateAverage(tokens: any[], field: string): number {
-    if (tokens.length === 0) return 0;
-    const sum = tokens.reduce((acc, token) => acc + token[field], 0);
-    return Math.round(sum / tokens.length);
-  }
-
-  private analyzeToken(metrics: any, score: number) {
-    const strengths: string[] = [];
-    const risks: string[] = [];
-
-    if (metrics.liquidity > 100000) strengths.push("High liquidity");
-    if (metrics.volume > 50000) strengths.push("Strong volume");
-    if (metrics.transactions > 100) strengths.push("Active trading");
-
-    if (metrics.priceChange > 30) risks.push("High price volatility");
-    if (metrics.liquidity < 75000) risks.push("Lower liquidity");
-    if (metrics.transactions < 75) risks.push("Lower trading activity");
-
-    return {
-      liquidityScore: this.normalizeMetric(metrics.liquidity),
-      volumeScore: this.normalizeMetric(metrics.volume),
-      transactionScore: this.normalizeMetric(metrics.transactions),
-      priceChangeScore: this.calculatePriceChangeScore(metrics.priceChange),
-      marketCapScore: this.normalizeMetric(metrics.marketCap),
-      strengths,
-      risks,
-    };
   }
 
   supportsNetwork(_: Network): boolean {
