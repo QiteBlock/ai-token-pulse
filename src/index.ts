@@ -16,8 +16,9 @@ import { ChatOpenAI } from "@langchain/openai";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as readline from "readline";
-import { twitterActionProvider } from "./action-providers/twitter/twitterActionProvider";
+import { customTwitterActionProvider } from "./action-providers/twitter/twitterActionProvider";
 import { dexscreenerProvider } from "./action-providers/token-details/dexscreenerActionProvider";
+import { tokenAnalysisProvider } from "./action-providers/token-analysis/tokenAnalysisProvider";
 
 dotenv.config();
 
@@ -107,19 +108,20 @@ async function initializeAgent() {
             "\n"
           ),
         }),
-        twitterActionProvider({
+        customTwitterActionProvider({
           apiKey: process.env.TWITTER_API_KEY,
           apiSecret: process.env.TWITTER_API_SECRET,
           accessToken: process.env.TWITTER_ACCESS_TOKEN,
           accessTokenSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
         }),
         dexscreenerProvider(),
+        tokenAnalysisProvider(),
       ],
     });
 
     const tools = await getLangChainTools(agentkit);
     const memory = new MemorySaver();
-    const agentConfig = { configurable: { thread_id: "Token Analysis Agent" } };
+    const agentConfig = { configurable: { thread_id: "Token Pulse Agent" } };
 
     const agent = createReactAgent({
       llm,
@@ -156,7 +158,7 @@ async function initializeAgent() {
 }
 
 async function runChatMode(agent: any, config: any) {
-  console.log("Starting token analysis chat mode... Type 'exit' to end.");
+  console.log("Starting token pulse chat mode... Type 'exit' to end.");
 
   const rl = readline.createInterface({
     input: process.stdin,
@@ -211,7 +213,7 @@ async function main() {
 }
 
 if (require.main === module) {
-  console.log("Starting Token Analysis Agent...");
+  console.log("Starting Token Pulse Agent...");
   main().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);

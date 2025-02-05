@@ -39,7 +39,7 @@ export interface TwitterActionProviderConfig {
  *
  * @augments ActionProvider
  */
-export class TwitterActionProvider extends ActionProvider {
+export class CustomTwitterActionProvider extends ActionProvider {
   private readonly client: TwitterApi;
   private lastSearchTime: number = 0;
   private readonly FIFTEEN_MINUTES =
@@ -222,30 +222,10 @@ A failure response will return a message with the Twitter API request error:
 
   @CreateAction({
     name: "get_tweets_by_token",
-    description: `
-This tool searches for tweets about a specific cryptocurrency token using its address and chain ID.
-
+    description: `Searches for tweets about a specific cryptocurrency token using its address.
 Input parameters:
 - tokenAddress: The token's contract address
-
-A successful response will return tweets with engagement metrics:
-    {
-        "data": [
-            {
-                "id": "123456789",
-                "text": "Tweet content about the token",
-                "engagement": {
-                    "likes": 10,
-                    "retweets": 5,
-                    "replies": 2
-                },
-                "created_at": "2024-02-03T15:44:47.000Z"
-            }
-        ]
-    }
-
-A failure response will return an error message:
-    "Error retrieving tweets: Rate limit exceeded. Try again in 15 minutes."`,
+Returns: Formatted list of tweets with engagement metrics.`,
     schema: GetTweetsByTokenSchema,
   })
   async getTweetsByToken(
@@ -258,26 +238,33 @@ A failure response will return an error message:
 
       const tweets = await this.client.v2.search({
         query: searchQuery,
-        max_results: 10,
-        "tweet.fields": ["public_metrics", "created_at"],
+        max_results: 10, // Static limit for now
+        "tweet.fields": ["public_metrics", "created_at"], // Only include public metrics and created_at for now
       });
 
       if (!tweets.data || tweets.data.data.length === 0) {
-        return JSON.stringify({ data: [] });
+        return "No tweets found for this token";
       }
 
-      const formattedTweets = tweets.data.data.map((tweet) => ({
-        id: tweet.id,
-        text: tweet.text,
-        created_at: tweet.created_at,
-        engagement: {
-          likes: tweet.public_metrics?.like_count || 0,
-          retweets: tweet.public_metrics?.retweet_count || 0,
-          replies: tweet.public_metrics?.reply_count || 0,
-        },
-      }));
+      let formattedOutput = "";
+      tweets.data.data.forEach((tweet, index) => {
+        formattedOutput += `Tweet ${index + 1}:\n`;
+        formattedOutput += `Content: ${tweet.text}\n`;
+        formattedOutput += `Engagement:\n`;
+        formattedOutput += `- Likes: ${
+          tweet.public_metrics?.like_count || 0
+        }\n`;
+        formattedOutput += `- Retweets: ${
+          tweet.public_metrics?.retweet_count || 0
+        }\n`;
+        formattedOutput += `- Replies: ${
+          tweet.public_metrics?.reply_count || 0
+        }\n`;
+        formattedOutput += `Created At: ${tweet.created_at}\n`;
+        formattedOutput += `URL: https://twitter.com/i/web/status/${tweet.id}\n\n`;
+      });
 
-      return JSON.stringify({ data: formattedTweets });
+      return formattedOutput;
     } catch (error) {
       if (error instanceof Error && error.message.includes("429")) {
         return "Error retrieving tweets: Rate limit exceeded. Try again in 15 minutes.";
@@ -304,6 +291,6 @@ A failure response will return an error message:
  * @param config - The configuration options for the TwitterActionProvider
  * @returns A new instance of TwitterActionProvider
  */
-export const twitterActionProvider = (
+export const customTwitterActionProvider = (
   config: TwitterActionProviderConfig = {}
-) => new TwitterActionProvider(config);
+) => new CustomTwitterActionProvider(config);
