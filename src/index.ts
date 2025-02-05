@@ -1,6 +1,7 @@
 import { DexscreenerService } from "./services/dexscreener";
 import { TwitterService } from "./services/twitter";
 import { SentimentAnalyzer } from "./services/sentiment";
+import { SchedulerService } from "./services/scheduler";
 import {
   Token,
   TokenReport,
@@ -13,7 +14,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-class TokenPulse {
+export class TokenPulse {
   private dexscreener: DexscreenerService;
   private twitter: TwitterService;
   private analyzer: SentimentAnalyzer | null = null;
@@ -47,21 +48,21 @@ class TokenPulse {
         console.log(
           `Processing token on ${token.chainId}: ${token.tokenAddress}`
         );
-        const limit = 10;
-        const tweets = await this.twitter.getTweetsByToken(token, limit);
+        // const limit = 10;
+        // const tweets = await this.twitter.getTweetsByToken(token, limit);
 
-        if (tweets.length === 0) {
-          console.log(`No tweets found for token ${token.tokenAddress}`);
-          return;
-        }
-        // Analyze all tweets at once
-        const sentiment = await this.analyzer!.analyzeTweets(tweets);
+        // if (tweets.length === 0) {
+        //   console.log(`No tweets found for token ${token.tokenAddress}`);
+        //   return;
+        // }
+        // // Analyze all tweets at once
+        // const sentiment = await this.analyzer!.analyzeTweets(tweets);
 
-        // Generate report using the aggregated sentiment
-        const report = this.generateReport(token, sentiment, limit);
+        // // Generate report using the aggregated sentiment
+        // const report = this.generateReport(token, sentiment, limit);
 
-        // Post to Twitter
-        await this.postToTwitter(report);
+        // // Post to Twitter
+        // await this.postToTwitter(report);
       } catch (error) {
         console.error(`Error processing token ${token.tokenAddress}:`, error);
       }
@@ -110,6 +111,31 @@ Based on ${report.analyzedTweets} tweets
   }
 }
 
-// Run the application
-const app = new TokenPulse();
-app.run();
+// Application startup
+async function startApplication() {
+  try {
+    const tokenPulse = new TokenPulse();
+    const scheduler = new SchedulerService(tokenPulse);
+
+    // Handle graceful shutdown
+    process.on("SIGTERM", () => {
+      console.log("Received SIGTERM. Shutting down gracefully...");
+      scheduler.stop();
+      process.exit(0);
+    });
+
+    process.on("SIGINT", () => {
+      console.log("Received SIGINT. Shutting down gracefully...");
+      scheduler.stop();
+      process.exit(0);
+    });
+
+    // Start the scheduler
+    scheduler.start();
+  } catch (error) {
+    console.error("Error starting application:", error);
+    process.exit(1);
+  }
+}
+
+startApplication();

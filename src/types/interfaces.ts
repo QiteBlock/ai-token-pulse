@@ -1,3 +1,20 @@
+declare global {
+  namespace NodeJS {
+    interface ProcessEnv {
+      TWITTER_API_KEY: string;
+      TWITTER_API_SECRET: string;
+      TWITTER_ACCESS_TOKEN: string;
+      TWITTER_ACCESS_TOKEN_SECRET: string;
+      SCHEDULE_ENABLED: string;
+      SCHEDULE_INTERVAL_MINUTES?: string;
+      SCHEDULE_TIMEZONE?: string;
+      MAX_DAILY_RUNS?: string;
+      START_HOUR?: string;
+      END_HOUR?: string;
+    }
+  }
+}
+
 export interface DexscreenerLink {
   type: string;
   label: string;
