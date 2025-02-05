@@ -60,7 +60,7 @@ validateEnvironment();
 
 const WALLET_DATA_FILE = "wallet_data.txt";
 
-async function initializeAgent() {
+export async function initializeAgent() {
   try {
     const llm = new ChatOpenAI({
       model: "gpt-4",
