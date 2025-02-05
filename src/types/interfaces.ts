@@ -36,6 +36,11 @@ export interface DexscreenerToken {
 
 export interface TokenLink {
   type: string;
+  url: Url;
+}
+
+export interface Url {
+  label: string;
   url: string;
 }
 
