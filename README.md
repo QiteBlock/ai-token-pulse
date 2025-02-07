@@ -184,6 +184,38 @@ Example queries:
 - **Agent**: Custom AI agent using AgentKit framework
 - **Data Sources**: Multiple providers for comprehensive token analysis
 
+## Screenshots 📸
+
+<p align="center">
+  <img src="./screenshots/home.png" alt="Chat Interface" width="800">
+  <br>
+  <em>Main chat interface</em>
+</p>
+
+<p align="center">
+  <img src="./screenshots/new-tokens-retrievals.png" alt="Token Metrics" width="800">
+  <br>
+  <em>Latest token creations on all chains</em>
+</p>
+
+<p align="center">
+  <img src="./screenshots/pair-data.png" alt="Social Sentiment" width="800">
+  <br>
+  <em>Token liquidity pair data</em>
+</p>
+
+<p align="center">
+  <img src="./screenshots/best-token.png" alt="Social Sentiment" width="800">
+  <br>
+  <em>The best token from latest token creations</em>
+</p>
+
+<p align="center">
+  <img src="./screenshots/sentiment-analysis.png" alt="Social Sentiment" width="800">
+  <br>
+  <em>Social sentiment analysis on a token</em>
+</p>
+
 ## Contributing 🤝
 
 1. Fork the repository
