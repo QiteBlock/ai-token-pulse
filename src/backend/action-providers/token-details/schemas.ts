@@ -7,7 +7,7 @@ export const GetTokenPairDataSchema = z.object({
 });
 
 export const GetLatestTokensSchema = z.object({
-  limit: z.number().optional().default(10),
+  limit: z.number().optional().default(5),
 });
 
 export const GetBestTokenSchema = z.object({});

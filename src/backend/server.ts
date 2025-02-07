@@ -47,47 +47,44 @@ app.post("/api/chat", async (req, res) => {
       });
     }
 
+    // Set up SSE headers
+    res.setHeader("Content-Type", "text/event-stream");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+
     // Add message to conversation history
     const newMessage = new HumanMessage(message);
     conversationHistory.push(newMessage);
 
-    // Create a response stream with full conversation history
+    // Create a response stream
     const stream = await agent.stream(
       { messages: conversationHistory },
       agentConfig
     );
 
-    let fullResponse = "";
-
-    // Collect all chunks
+    // Stream the response word by word
     for await (const chunk of stream) {
-      if ("agent" in chunk) {
-        fullResponse += chunk.agent.messages[0].content + "\n";
-      } else if ("tools" in chunk) {
-        fullResponse += chunk.tools.messages[0].content + "\n";
+      if ("tools" in chunk) {
+        const content = chunk.tools.messages[0].content;
+        const words = content.split(" ");
+
+        for (const word of words) {
+          res.write(`data: ${JSON.stringify({ word: word + " " })}\n\n`);
+          // Small delay between words for natural feeling
+          await new Promise((resolve) => setTimeout(resolve, 50));
+        }
       }
     }
 
-    // Add assistant's response to conversation history
-    conversationHistory.push(new HumanMessage(fullResponse.trim()));
-
-    // Limit conversation history to last N messages (e.g., 10)
-    const MAX_HISTORY = 10;
-    if (conversationHistory.length > MAX_HISTORY * 2) {
-      // *2 because each exchange has 2 messages
-      conversationHistory = conversationHistory.slice(-MAX_HISTORY * 2);
-    }
-
-    res.json({
-      response: fullResponse.trim(),
-      timestamp: new Date().toISOString(),
-    });
+    // Send end message
+    res.write("data: [DONE]\n\n");
+    res.end();
   } catch (error) {
     console.error("Chat error:", error);
-    res.status(500).json({
-      error: "Internal server error",
-      message: error instanceof Error ? error.message : "Unknown error",
-    });
+    res.write(
+      `data: ${JSON.stringify({ error: "Internal server error" })}\n\n`
+    );
+    res.end();
   }
 });
 

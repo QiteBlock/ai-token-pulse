@@ -8,7 +8,7 @@ import {
   GetBestTokenSchema,
   GetTokenPairDataSchema,
 } from "./schemas";
-import { DexscreenerToken } from "../../types/interfaces";
+import { DexscreenerLink, DexscreenerToken } from "../../types/interfaces";
 import { DexscreenerService } from "../../services/dexscreener";
 
 export class DexscreenerActionProvider extends ActionProvider {
@@ -21,7 +21,7 @@ export class DexscreenerActionProvider extends ActionProvider {
   @CreateAction({
     name: "get_latest_tokens",
     description: `Fetches recently created tokens with their metadata. Parameters:
-- limit: Maximum number of tokens to return (default: 10)
+- limit: Maximum number of tokens to return (default: 5)
 Returns: Formatted list of tokens with their details and social links.`,
     schema: GetLatestTokensSchema,
   })
@@ -45,8 +45,10 @@ Returns: Formatted list of tokens with their details and social links.`,
 
         if (token.links && Object.keys(token.links).length > 0) {
           formattedOutput += `Social Media:\n`;
-          token.links.forEach(([type, url]) => {
-            formattedOutput += `- Type: ${url.label}\n  URL: ${url.url}\n`;
+          token.links.forEach((link: DexscreenerLink) => {
+            formattedOutput += `- Type: ${link.type || ""} ${
+              link.label || ""
+            }\n  URL: ${link.url || ""}\n`;
           });
         }
 
