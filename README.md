@@ -1,3 +1,7 @@
+# ETHGlobal Agentic Ethereum Hackathon
+
+https://ethglobal.com/showcase/tokenpulseai-bb3tg
+
 # TokenPulse Chatbot 🤖
 
 <p align="center">
