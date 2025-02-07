@@ -1,24 +1,48 @@
-# TokenPulse
+# TokenPulse Chatbot 🤖
 
-An AI-driven sentiment analysis tool that combines real-time on-chain metrics with social media sentiment to generate actionable market insights for cryptocurrency tokens.
+TokenPulse is an AI-powered chatbot specifically designed for cryptocurrency token analysis. It combines real-time market data, social sentiment analysis, and blockchain interactions to provide comprehensive insights about crypto tokens.
 
-## Overview
+## Features 🚀
 
-TokenPulse leverages multiple data sources and cutting-edge AI technologies to help market analysts and investors quickly gauge whether a token's current buzz is bullish or bearish, supported by relevant arguments extracted from social media chatter.
+- **Real-time Token Analysis**
 
-## Features
+  - Token pair data from DEX platforms
+  - Price and liquidity information
+  - Trading volume analytics
 
-- Real-time token boost data from Dexscreener
-- Social sentiment analysis from Twitter
-- AI-powered sentiment classification using Coinbase's AgentKit and OpenAI
-- Aggregated sentiment reports with supporting arguments
+- **Social Media Insights**
 
-## How It Works
+  - Twitter sentiment analysis
+  - Social engagement metrics
+  - Community trend analysis
 
-1. **Token Data Retrieval**: Fetches active token boosts from Dexscreener API
-2. **Social Sentiment Extraction**: Queries Twitter for relevant token discussions
-3. **AI Sentiment Analysis**: Processes tweets through AgentKit + OpenAI
-4. **Signal Aggregation**: Compiles sentiment data into actionable insights
+- **Blockchain Integration**
+
+  - Direct blockchain interaction via CDP tools
+  - Smart contract analysis
+  - Wallet interactions
+
+- **Interactive Chat Interface**
+  - Real-time streaming responses
+  - Natural language processing
+  - Context-aware conversations
+
+## Technology Stack 💻
+
+### Frontend
+
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- Heroicons
+- Server-Sent Events (SSE)
+
+### Backend
+
+- Express.js
+- LangChain
+- Coinbase CDP SDK
+- AgentKit Framework
 
 ## Requirements
 
@@ -40,26 +64,51 @@ TokenPulse leverages multiple data sources and cutting-edge AI technologies to h
 6. Configure "App info" urls and save
 7. Generate required keys and tokens
 
-### Environment Setup
+### APIs & Services
 
-Before running the application, ensure you have Node.js 18+ installed:
+- Twitter API
+- DexScreener
+- Pyth Network
+- Coinbase CDP
+
+## Getting Started 🏁
+
+### Prerequisites
 
 ```bash
-node --version
-npm --version
+node >= 18.0.0
+npm >= 9.0.0
 ```
 
-## Installation
+### Installation
+
+1. Clone the repository:
 
 ```bash
+git clone https://github.com/yourusername/token-pulse-chatbot.git
+cd token-pulse-chatbot
+```
+
+2. Install dependencies:
+
+```bash
+# Frontend
+cd frontend/token-pulse-chatbot
+npm install
+
+# Backend
+cd ../../backend
 npm install
 ```
 
-## Configuration
+3. Set up environment variables:
 
-Create a `.env` file with the following variables:
+```bash
+# Frontend (.env.local)
+NEXT_PUBLIC_API_URL=http://localhost:3001
 
-```
+# Backend (.env)
+PORT=3001
 OPENAI_API_KEY=your_openai_key
 TWITTER_ACCESS_TOKEN=your_twitter_access_token
 TWITTER_ACCESS_TOKEN_SECRET=your_twitter_access_token_secret
@@ -91,14 +140,65 @@ WEIGHT_PRICE_CHANGE=0.15
 WEIGHT_MARKET_CAP=0.15
 ```
 
-## Usage
-
-Start the application:
+4. Start the development servers:
 
 ```bash
-npm start
+# Backend
+cd ../../backend
+npm run server
+
+# Frontend (in a new terminal)
+cd frontend/token-pulse-chatbot
+npm run dev
 ```
 
-## License
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
+
+## Usage 💡
+
+TokenPulse can help you with:
+
+- Analyzing new token launches
+- Monitoring token metrics
+- Assessing social sentiment
+- Tracking market trends
+- Interacting with blockchain contracts
+
+Example queries:
+
+```
+"Analyze the latest tokens launched today"
+"Get me the best token to buy today"
+"What's the social sentiment for $TOKEN?"
+"Show me the liquidity metrics for this pair: [address]"
+```
+
+## Architecture 🏗️
+
+- **Frontend**: Next.js application with real-time streaming capabilities
+- **Backend**: Express server with LangChain integration
+- **Agent**: Custom AI agent using AgentKit framework
+- **Data Sources**: Multiple providers for comprehensive token analysis
+
+## Contributing 🤝
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License 📝
 
 This project is licensed under the GPL-3.0 License. See the LICENSE file for details.
+
+## Acknowledgments 🙏
+
+- Coinbase CDP Team
+- LangChain Community
+- DexScreener API
+- Twitter API
+
+---
+
+Built with ❤️ by QiteBlock
