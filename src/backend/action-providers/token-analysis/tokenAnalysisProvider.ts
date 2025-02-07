@@ -34,9 +34,9 @@ Parameters:
       const bestToken = await this.dexscreenerService.getBestToken();
 
       // Get social data
-      const socialData = await this.twitterActionProvider.getTweetsByToken({
-        tokenAddress: args.tokenAddress,
-      });
+      const socialData = await this.twitterActionProvider.getTweetsForAToken(
+        args.tokenAddress
+      );
 
       // Prepare data for sentiment analysis
       const messages = [

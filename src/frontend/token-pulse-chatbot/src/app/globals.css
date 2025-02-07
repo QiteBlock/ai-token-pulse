@@ -19,3 +19,23 @@ body {
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Hide scrollbar on WebKit-based browsers (Chrome, Safari, etc.) */
+::-webkit-scrollbar {
+  width: 0; /* Remove scrollbar space */
+  background: transparent; /* Optional: just to be safe */
+}
+::-webkit-scrollbar-thumb {
+  background: transparent;
+}
+
+/* Hide scrollbar in Firefox */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* Internet Explorer/Edge legacy */
+}
+
+textarea:focus {
+  outline: none; /* Remove default browser outline */
+  box-shadow: none; /* Remove any box-shadow that might appear */
+}
