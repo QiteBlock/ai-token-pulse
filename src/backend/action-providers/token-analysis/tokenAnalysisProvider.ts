@@ -30,9 +30,6 @@ Parameters:
     args: z.infer<typeof TokenAnalysisSchema>
   ): Promise<string> {
     try {
-      // Get market data
-      const bestToken = await this.dexscreenerService.getBestToken();
-
       // Get social data
       const socialData = await this.twitterActionProvider.getTweetsForAToken(
         args.tokenAddress
@@ -45,9 +42,6 @@ Parameters:
         ),
         new HumanMessage(`
                     Analyze this token data:
-
-                    Token Market Data:
-                    ${bestToken}
 
                     Social Activity:
                     ${socialData}

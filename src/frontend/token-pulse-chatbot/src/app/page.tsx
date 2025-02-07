@@ -145,14 +145,14 @@ export default function ChatbotPage() {
           {messages.length === 0 && !currentStreamingMessage && (
             <div className="text-center text-green-500 mt-8 animate-pulse">
               <h1 className="text-2xl font-bold mb-2 font-mono">
-                > TokenPulse Terminal v1.0.0_
+                TokenPulse Terminal v1.0.0_
               </h1>
               <p className="text-lg text-green-400/80">
                 {">> Ready for token analysis. Awaiting input..."}
               </p>
             </div>
           )}
-          
+
           {messages.map((message) => (
             <div
               key={message.id}
@@ -162,32 +162,36 @@ export default function ChatbotPage() {
             >
               <div className="max-w-4xl mx-auto flex space-x-4">
                 <div className="flex-none pt-1">
-                  <span className={`font-bold ${
-                    message.role === "assistant"
-                      ? "text-green-500"
-                      : "text-blue-500"
-                  }`}>
+                  <span
+                    className={`font-bold ${
+                      message.role === "assistant"
+                        ? "text-green-500"
+                        : "text-blue-500"
+                    }`}
+                  >
                     {message.role === "assistant" ? "AI>" : "USER>"}
                   </span>
                 </div>
                 <div className="flex-1">
-                  <p className={`whitespace-pre-wrap ${
-                    message.role === "assistant" 
-                      ? "text-green-400/90" 
-                      : "text-blue-400/90"
-                  }`}>
+                  <p
+                    className={`whitespace-pre-wrap ${
+                      message.role === "assistant"
+                        ? "text-green-400/90"
+                        : "text-blue-400/90"
+                    }`}
+                  >
                     {message.content}
                   </p>
                 </div>
               </div>
             </div>
           ))}
-          
+
           {currentStreamingMessage && (
             <div className="px-4 py-4 bg-black">
               <div className="max-w-4xl mx-auto flex space-x-4">
                 <div className="flex-none pt-1">
-                  <span className="text-green-500 font-bold">AI></span>
+                  <span className="text-green-500 font-bold">AI</span>
                 </div>
                 <div className="flex-1">
                   <p className="text-green-400/90 whitespace-pre-wrap">
@@ -198,12 +202,12 @@ export default function ChatbotPage() {
               </div>
             </div>
           )}
-          
+
           {loading && !currentStreamingMessage && (
             <div className="px-4 py-4 bg-black">
               <div className="max-w-4xl mx-auto flex space-x-4">
                 <div className="flex-none pt-1">
-                  <span className="text-green-500 font-bold">SYSTEM></span>
+                  <span className="text-green-500 font-bold">SYSTEM</span>
                 </div>
                 <div className="flex-1">
                   <p className="text-green-400/90 animate-pulse">

@@ -110,7 +110,9 @@ Returns: Best token with its details.`,
       if (bestToken.links && bestToken.links.length > 0) {
         formattedOutput += `Social Media Links:\n`;
         bestToken.links.forEach((link) => {
-          formattedOutput += `- ${link.label}: ${link.url}\n`;
+          formattedOutput += `- ${link.type || ""} ${link.label || ""}: ${
+            link.url
+          }\n`;
         });
       }
 
