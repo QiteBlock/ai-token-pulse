@@ -1,5 +1,9 @@
 # TokenPulse Chatbot 🤖
 
+<p align="center">
+  <img src="./src/frontend/token-pulse-chatbot/public/token-pulse.png" alt="TokenPulse Logo" width="200" height="200">
+</p>
+
 TokenPulse is an AI-powered chatbot specifically designed for cryptocurrency token analysis. It combines real-time market data, social sentiment analysis, and blockchain interactions to provide comprehensive insights about crypto tokens.
 
 ## Features 🚀
